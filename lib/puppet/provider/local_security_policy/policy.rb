@@ -4,15 +4,17 @@ require_relative '../../../puppet_x/twp/inifile'
 
 Puppet::Type.type(:local_security_policy).provide(:policy) do
   desc 'Puppet type that models the local security policy'
+  confine operatingsystem: :windows
 
-  #
-  # TODO Finalize the registry key settings
-  # TODO Add in registry value translation (ex: 1=enable 0=disable)
-  # TODO Implement self.post_resource_eval (need to collect all resource updates the run secedit to make one call)
-  # limit access to windows hosts only
-  confine :operatingsystem => :windows
-  # limit access to systems with these commands since this is the tools we need
-  commands :wmic => 'wmic', :secedit => 'secedit'
+  commands secedit: 'secedit',
+           powershell:
+              if File.exist?("#{ENV['SYSTEMROOT']}\\sysnative\\WindowsPowershell\\v1.0\\powershell.exe")
+                "#{ENV['SYSTEMROOT']}\\sysnative\\WindowsPowershell\\v1.0\\powershell.exe"
+              elsif File.exist?("#{ENV['SYSTEMROOT']}\\system32\\WindowsPowershell\\v1.0\\powershell.exe")
+                "#{ENV['SYSTEMROOT']}\\system32\\WindowsPowershell\\v1.0\\powershell.exe"
+              else
+                'powershell.exe'
+              end
 
   mk_resource_methods
 
