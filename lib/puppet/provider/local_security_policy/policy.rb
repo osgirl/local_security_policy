@@ -1,15 +1,6 @@
-#encoding: UTF-8
 require 'fileutils'
-
-begin
-  require "puppet_x/twp/inifile"
-  require "puppet_x/lsp/security_policy"
-rescue LoadError => detail
-  require 'pathname' # JJM WORK_AROUND #14073
-  mod = Puppet::Module.find('local_security_policy', Puppet[:environment].to_s)
-  require File.join(mod.path, 'lib/puppet_x/twp/inifile')
-  require File.join(mod.path, 'lib/puppet_x/lsp/security_policy')
-end
+require_relative '../../../puppet_x/lsp/security_policy'
+require_relative '../../../puppet_x/twp/inifile'
 
 Puppet::Type.type(:local_security_policy).provide(:policy) do
   desc 'Puppet type that models the local security policy'
@@ -26,7 +17,7 @@ Puppet::Type.type(:local_security_policy).provide(:policy) do
   mk_resource_methods
 
   # export the policy settings to the specified file and return the filename
-  def self.export_policy_settings(inffile=nil)
+  def self.export_policy_settings(inffile = nil)
     inffile ||= temp_file
     secedit(['/export', '/cfg', inffile, '/quiet'])
     inffile
@@ -34,14 +25,14 @@ Puppet::Type.type(:local_security_policy).provide(:policy) do
 
   # export and then read the policy settings from a file into a inifile object
   # caches the IniFile object during the puppet run
-  def self.read_policy_settings(inffile=nil)
+  def self.read_policy_settings(inffile = nil)
     inffile ||= temp_file
     unless @file_object
       export_policy_settings(inffile)
       File.open inffile, 'r:IBM437' do |file|
         # remove /r/n and remove the BOM
         inffile_content = file.read.force_encoding('utf-16le').encode('utf-8', :universal_newline => true).gsub("\xEF\xBB\xBF", '')
-        @file_object ||= PuppetX::IniFile.new(:content => inffile_content)
+        @file_object ||= PuppetX::IniFile.new(content: inffile_content)
       end
     end
     @file_object
@@ -53,8 +44,8 @@ Puppet::Type.type(:local_security_policy).provide(:policy) do
   def self.fixup_value(value, type)
     value = value.to_s.strip
     case type
-      when :quoted_string
-        value = "\"#{value}\""
+    when :quoted_string
+      value = "\"#{value}\""
     end
     value
   end
@@ -104,7 +95,7 @@ Puppet::Type.type(:local_security_policy).provide(:policy) do
     @property_hash = resource.to_hash
   end
 
-  def initialize(value={})
+  def initialize(value = {})
     super(value)
     @property_flush = {}
   end
@@ -152,7 +143,7 @@ Puppet::Type.type(:local_security_policy).provide(:policy) do
   # writes out one policy at a time using the InfFile Class and secedit
   def write_policy_to_system(policy_hash)
     time = Time.now
-    time = time.strftime("%Y%m%d%H%M%S")
+    time = time.strftime('%Y%m%d%H%M%S')
     infout = "c:\\windows\\temp\\infimport-#{time}.inf"
     sdbout = "c:\\windows\\temp\\sdbimport-#{time}.inf"
     #logout = "c:\\windows\\temp\\logout-#{time}.inf"
@@ -161,14 +152,14 @@ Puppet::Type.type(:local_security_policy).provide(:policy) do
       # read the system state into the inifile object for easy variable setting
       inf = PuppetX::IniFile.new
       # these sections need to be here by default
-      inf["Version"] = {"signature"=>"$CHICAGO$", "Revision"=>1}
-      inf["Unicode"] = {"Unicode"=>"yes"}
+      inf['Version'] = { 'signature' => '$CHICAGO$', 'Revision' => 1 }
+      inf['Unicode'] = { 'Unicode' => 'yes' }
       section = policy_hash[:policy_type]
       section_value = {policy_hash[:policy_setting] => policy_hash[:policy_value]}
       # we can utilize the IniFile class to write out the data in ini format
       inf[section] = section_value
-      inf.write(:filename => infout, :encoding => 'utf-8')
-      secedit(['/configure', '/db', sdbout, '/cfg',infout])
+      inf.write(filename: infout, encoding: 'utf-8')
+      secedit(['/configure', '/db', sdbout, '/cfg', infout])
     ensure
       FileUtils.rm_f(temp_file)
       FileUtils.rm_f(infout)
