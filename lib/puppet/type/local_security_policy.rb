@@ -5,9 +5,9 @@ Puppet::Type.newtype(:local_security_policy) do
 
   newparam(:name) do
     desc 'Local Security Setting Name. What you see in the GUI.'
-    validate do |value|
-      raise ArgumentError, "Invalid Policy name: #{value}" unless SecurityPolicy.valid_lsp?(value)
-    end
+    #validate do |value|
+    #  raise ArgumentError, "Invalid Policy name: #{value}" unless SecurityPolicy.valid_lsp?(value)
+    #end
   end
 
   newproperty(:policy_value) do
