@@ -34,6 +34,7 @@ Puppet::Type.type(:user_rights_assignment).provide(:secedit) do
   def security_setting=(value)
     write_file
     secedit(['/configure', '/db', 'C:\\db.sdb', '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet'])
+    FileUtils.rm_f 'C:\\Windows\\Temp\\write.ini'
   end
 
   def write_file
@@ -99,8 +100,7 @@ $strSID.Value
         current_section = line.strip
         next
       end
-      next if current_section !~ /\[Privilege Rights\]/
-      settings << convert_line(line)
+      settings << convert_line(line) if current_section == '[Privilege Rights]'
     end
     settings
   end
@@ -166,10 +166,11 @@ $objUser = $objSID.Translate( [System.Security.Principal.NTAccount])
         ).delete("\xEF\xBB\xBF")
       end
     end
+    FileUtils.rm_f inffile
     @file_object
   end
 
   def self.temp_file
-    'c:\\secedit.inf'
+    'C:\\Windows\\Temp\\secedit.inf'
   end
 end
