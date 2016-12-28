@@ -23,7 +23,6 @@ Puppet::Type.type(:user_rights_assignment).provide(:secedit) do
   end
 
   def self.instances
-    @sids = []
     inf = read_policy_settings
     settings = process_lines inf
     convert_sids @sids
@@ -34,7 +33,7 @@ Puppet::Type.type(:user_rights_assignment).provide(:secedit) do
 
   def security_setting=(value)
     write_file
-    secedit(['/configure', '/db', 'C:\\db.sdb', '/cfg', 'C:\\write.ini'])
+    secedit(['/configure', '/db', 'C:\\db.sdb', '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet'])
   end
 
   def write_file
@@ -50,13 +49,13 @@ Unicode=yes
     sids = convert_users @resource[:security_setting]
     setting_line = "#{setting_name} = #{sids}"
     text += setting_line
-    out_file = File.new('C:\\write.ini', 'w')
+    out_file = File.new('C:\\Windows\\Temp\\write.ini', 'w')
     out_file.puts(text)
     out_file.close
   end
 
   def convert_users(users)
-    users = replace_incorrect_users users
+    users = self.class.replace_incorrect_users users
     input = self.class.join_array users
     command = <<-COMMAND
 #{input} | % {
@@ -72,15 +71,17 @@ $strSID.Value
     starred.join(',')
   end
 
-  def replace_incorrect_users(users)
+  # fix for Win10/Server2016
+  def self.replace_incorrect_users(users)
     index = users.index('BUILTIN\\System Managed Group')
     if index
-      users[index] = 'BUILTIN\System Managed Accounts Group'
+      users[index] = 'BUILTIN\\System Managed Accounts Group'
     end
     users
   end
 
   def self.convert_line(line)
+    @sids ||= []
     name = line.split('=')[0].strip
     setting = line.split('=')[1].strip.delete('*').split(',')
     @sids.concat setting

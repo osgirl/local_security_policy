@@ -9,22 +9,22 @@ module UserRightsAssignment
     end
 
     def self.friendly_name(system_name)
-      return 'Unknown' unless @mapping.invert[system_name]
+      return "Unknown setting: #{system_name}" unless @mapping.invert[system_name]
       @mapping.invert[system_name]
     end
 
     def self.system_name(friendly_name)
-      raise 'Unknown' unless @mapping[friendly_name]
+      raise "Unknown friendly name: #{friendly_name}" unless @mapping[friendly_name]
       @mapping[friendly_name]
     end
 
     def self.sid(user_name)
-      return 'Unknown user name' unless @sid_mapping.invert[user_name]
+      return "Unknown user name: #{user_name}" unless @sid_mapping.invert[user_name]
       @sid_mapping.invert[user_name]
     end
 
     def self.user_name(sid)
-      raise 'Unknown SID' unless @sid_mapping[sid]
+      raise "Unknown SID: #{sid}" unless @sid_mapping[sid]
       @sid_mapping[sid]
     end
 
