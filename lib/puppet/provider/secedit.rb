@@ -1,6 +1,8 @@
 class Puppet::Provider::Secedit < Puppet::Provider
   confine operatingsystem: :windows
 
+  initvars
+
   commands secedit: 'secedit',
            powershell:
               if File.exist?("#{ENV['SYSTEMROOT']}\\sysnative\\WindowsPowershell\\v1.0\\powershell.exe")
