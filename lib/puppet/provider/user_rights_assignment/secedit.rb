@@ -1,17 +1,7 @@
 require_relative '../../../puppet_x/user_rights_assignment/lookup'
+require_relative '../secedit'
 
-Puppet::Type.type(:user_rights_assignment).provide(:secedit) do
-  confine operatingsystem: :windows
-
-  commands secedit: 'secedit',
-           powershell:
-              if File.exist?("#{ENV['SYSTEMROOT']}\\sysnative\\WindowsPowershell\\v1.0\\powershell.exe")
-                "#{ENV['SYSTEMROOT']}\\sysnative\\WindowsPowershell\\v1.0\\powershell.exe"
-              elsif File.exist?("#{ENV['SYSTEMROOT']}\\system32\\WindowsPowershell\\v1.0\\powershell.exe")
-                "#{ENV['SYSTEMROOT']}\\system32\\WindowsPowershell\\v1.0\\powershell.exe"
-              else
-                'powershell.exe'
-              end
+Puppet::Type.type(:user_rights_assignment).provide(:secedit, parent: Puppet::Provider::Secedit) do
   mk_resource_methods
 
   def self.prefetch(resources)
@@ -33,8 +23,10 @@ Puppet::Type.type(:user_rights_assignment).provide(:secedit) do
 
   def security_setting=(value)
     write_file
-    secedit(['/configure', '/db', 'C:\\db.sdb', '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet'])
+    secedit(['/configure', '/db', 'C:\\Windows\\Temp\\db.sdb', '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet'])
     FileUtils.rm_f 'C:\\Windows\\Temp\\write.ini'
+    FileUtils.rm_f 'C:\\Windows\\Temp\\db.sdb'
+    FileUtils.rm_f 'C:\\Windows\\Temp\\db.jfm'
   end
 
   def write_file
@@ -147,30 +139,5 @@ $objUser = $objSID.Translate( [System.Security.Principal.NTAccount])
       "\"#{member}\""
     end
     quoted.join(',')
-  end
-
-  def self.export_policy_settings(inffile = nil)
-    inffile ||= temp_file
-    secedit(['/export', '/cfg', inffile, '/quiet'])
-    inffile
-  end
-
-  def self.read_policy_settings(inffile = nil)
-    inffile ||= temp_file
-    unless @file_object
-      export_policy_settings(inffile)
-      File.open inffile, 'r:IBM437' do |file|
-        # remove /r/n and remove the BOM
-        @file_object = file.read.force_encoding('utf-16le').encode(
-          'utf-8', universal_newline: true
-        ).delete("\xEF\xBB\xBF")
-      end
-    end
-    FileUtils.rm_f inffile
-    @file_object
-  end
-
-  def self.temp_file
-    'C:\\Windows\\Temp\\secedit.inf'
   end
 end

@@ -2,6 +2,9 @@ require 'spec_helper'
 
 provider_class = Puppet::Type.type(:user_rights_assignment).provider(:secedit)
 describe provider_class do
+  before(:all) do
+    allow_any_instance_of(FileUtils).to receive(:rm_f).and_return(nil)
+  end
   describe :convert_line do
     specify 'returns a hash of the setting name and associated SIDs' do
       input = 'SeChangeNotifyPrivilege = *S-1-1-0,*S-1-5-19,*S-1-5-20,*S-1-5-32-544,*S-1-5-32-545,*S-1-5-32-551'
