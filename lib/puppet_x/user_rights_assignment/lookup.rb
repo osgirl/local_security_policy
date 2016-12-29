@@ -47,6 +47,7 @@ module UserRightsAssignment
       'Manage auditing and security log' => 'SeSecurityPrivilege',
       'Modify an object label' => 'SeRelabelPrivilege',
       'Modify firmware environment values' => 'SeSystemEnvironmentPrivilege',
+      'Obtain an impersonation token for another user in the same session' => 'SeDelegateSessionUserImpersonatePrivilege',
       'Perform volume maintenance tasks' => 'SeManageVolumePrivilege',
       'Profile single process' => 'SeProfileSingleProcessPrivilege',
       'Profile system performance' => 'SeSystemProfilePrivilege',
