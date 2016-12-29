@@ -13,31 +13,6 @@ describe provider_class do
       expect(output).to eq(expected)
     end
   end
-  describe :convert_ps_output_to_hash do
-    specify 'converts colon separated list of strings to hash' do
-      input = <<-INPUT
-S-1-5-32-544:BUILTIN\\Administrators
-S-1-5-32-545:BUILTIN\\Users
-S-1-5-32-551:BUILTIN\\Backup Operators
-S-1-5-32-581:BUILTIN\\System Managed Group
-      INPUT
-      output = provider_class.convert_ps_output_to_hash input
-      expected = {
-        'S-1-5-32-544' => 'BUILTIN\\Administrators',
-        'S-1-5-32-545' => 'BUILTIN\\Users',
-        'S-1-5-32-551' => 'BUILTIN\\Backup Operators',
-        'S-1-5-32-581' => 'BUILTIN\\System Managed Group'
-      }
-      expect(output).to eq(expected)
-    end
-  end
-  describe :join_array do
-    specify 'converts array to quoted comma separated string' do
-      input = ['item1', 'item2', 'item3']
-      output = provider_class.join_array input
-      expect(output).to eq '"item1","item2","item3"'
-    end
-  end
   describe :replace_incorrect_users do
     specify 'replaces incorrect array value with the correct value' do
       input = ['BUILTIN\\Administrators', 'CRUCIBLE0\\Service Accounts', 'BUILTIN\\System Managed Group']
@@ -62,12 +37,11 @@ S-1-5-32-581:BUILTIN\\System Managed Group
     end
   end
   describe :system_to_friendly do
-    UserRightsAssignment::Lookup.sid_mapping = {
-      'S-1-5-32-544' => 'BUILTIN\\Administrators',
-      'S-1-5-32-545' => 'BUILTIN\\Users',
-      'S-1-5-32-551' => 'BUILTIN\\Backup Operators'
-    }
     specify 'converts hash of setting names and SIDS to friendly name and user names' do
+      allow(Puppet::Util::Windows::SID).to receive(:valid_sid?).and_return(true)
+      allow(Puppet::Util::Windows::SID).to receive(:sid_to_name).with('S-1-5-32-544').and_return('BUILTIN\\Administrators')
+      allow(Puppet::Util::Windows::SID).to receive(:sid_to_name).with('S-1-5-32-545').and_return('BUILTIN\\Users')
+      allow(Puppet::Util::Windows::SID).to receive(:sid_to_name).with('S-1-5-32-551').and_return('BUILTIN\\Backup Operators')
       input = {
         name: 'SeNetworkLogonRight',
         security_setting: ['S-1-5-32-544', 'S-1-5-32-545', 'S-1-5-32-551']
@@ -80,6 +54,10 @@ S-1-5-32-581:BUILTIN\\System Managed Group
       expect(output).to eq(expected)
     end
     specify 'does not lookup the SID value if it is not a SID' do
+      allow(Puppet::Util::Windows::SID).to receive(:valid_sid?).with('Guest').and_return(false)
+      allow(Puppet::Util::Windows::SID).to receive(:valid_sid?).with('SQLServer2005SQLBrowserUser$PUPPET-SQLTEST6').and_return(false)
+      allow(Puppet::Util::Windows::SID).to receive(:valid_sid?).with('S-1-5-32-551').and_return(true)
+      allow(Puppet::Util::Windows::SID).to receive(:sid_to_name).with('S-1-5-32-551').and_return('BUILTIN\\Backup Operators')
       input = {
         name: 'SeNetworkLogonRight',
         security_setting: ['Guest', 'SQLServer2005SQLBrowserUser$PUPPET-SQLTEST6', 'S-1-5-32-551']

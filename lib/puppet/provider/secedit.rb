@@ -3,15 +3,8 @@ class Puppet::Provider::Secedit < Puppet::Provider
 
   initvars
 
-  commands secedit: 'secedit',
-           powershell:
-              if File.exist?("#{ENV['SYSTEMROOT']}\\sysnative\\WindowsPowershell\\v1.0\\powershell.exe")
-                "#{ENV['SYSTEMROOT']}\\sysnative\\WindowsPowershell\\v1.0\\powershell.exe"
-              elsif File.exist?("#{ENV['SYSTEMROOT']}\\system32\\WindowsPowershell\\v1.0\\powershell.exe")
-                "#{ENV['SYSTEMROOT']}\\system32\\WindowsPowershell\\v1.0\\powershell.exe"
-              else
-                'powershell.exe'
-              end
+  commands secedit: 'secedit'
+
   def self.export_policy_settings(inffile = nil)
     inffile ||= temp_file
     secedit(['/export', '/cfg', inffile, '/quiet'])
