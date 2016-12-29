@@ -98,7 +98,9 @@ $strSID.Value
   end
 
   def self.convert_sids(sids)
-    sids.delete('Guest')
+    sids.delete_if do |member|
+      member !~ /^S-\d-\d+-(\d+-){1,14}\d+$/
+    end
     input = join_array sids
     command = <<-COMMAND
 #{input} | % {
@@ -113,7 +115,7 @@ $objUser = $objSID.Translate( [System.Security.Principal.NTAccount])
 
   def self.system_to_friendly(setting)
     users = setting[:security_setting].each.collect do |sid|
-      if sid != 'Guest'
+      if sid =~ /^S-\d-\d+-(\d+-){1,14}\d+$/
         UserRightsAssignment::Lookup.user_name(sid)
       else
         sid

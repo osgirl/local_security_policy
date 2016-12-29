@@ -29,7 +29,7 @@ class Puppet::Provider::Secedit < Puppet::Provider
         ).delete("\xEF\xBB\xBF")
       end
     end
-    FileUtils.rm_f inffile
+    #FileUtils.rm_f inffile
     @file_object
   end
 

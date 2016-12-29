@@ -2,9 +2,6 @@ require 'spec_helper'
 
 provider_class = Puppet::Type.type(:user_rights_assignment).provider(:secedit)
 describe provider_class do
-  before(:all) do
-    allow_any_instance_of(FileUtils).to receive(:rm_f).and_return(nil)
-  end
   describe :convert_line do
     specify 'returns a hash of the setting name and associated SIDs' do
       input = 'SeChangeNotifyPrivilege = *S-1-1-0,*S-1-5-19,*S-1-5-20,*S-1-5-32-544,*S-1-5-32-545,*S-1-5-32-551'
@@ -62,6 +59,37 @@ S-1-5-32-581:BUILTIN\\System Managed Group
       expected_file = File.join(fixtures_path, 'unit', 'process_lines_expected.json')
       expected = JSON.parse(File.read(expected_file), symbolize_names: true)
       expect(output).to match_array(expected)
+    end
+  end
+  describe :system_to_friendly do
+    UserRightsAssignment::Lookup.sid_mapping = {
+      'S-1-5-32-544' => 'BUILTIN\\Administrators',
+      'S-1-5-32-545' => 'BUILTIN\\Users',
+      'S-1-5-32-551' => 'BUILTIN\\Backup Operators'
+    }
+    specify 'converts hash of setting names and SIDS to friendly name and user names' do
+      input = {
+        name: 'SeNetworkLogonRight',
+        security_setting: ['S-1-5-32-544', 'S-1-5-32-545', 'S-1-5-32-551']
+      }
+      output = provider_class.system_to_friendly input
+      expected = {
+        name: 'Access this computer from the network',
+        security_setting: ['BUILTIN\\Administrators', 'BUILTIN\\Users', 'BUILTIN\\Backup Operators']
+      }
+      expect(output).to eq(expected)
+    end
+    specify 'does not lookup the SID value if it is not a SID' do
+      input = {
+        name: 'SeNetworkLogonRight',
+        security_setting: ['Guest', 'SQLServer2005SQLBrowserUser$PUPPET-SQLTEST6', 'S-1-5-32-551']
+      }
+      output = provider_class.system_to_friendly input
+      expected = {
+        name: 'Access this computer from the network',
+        security_setting: ['Guest', 'SQLServer2005SQLBrowserUser$PUPPET-SQLTEST6', 'BUILTIN\\Backup Operators']
+      }
+      expect(output).to eq(expected)
     end
   end
 end
