@@ -98,4 +98,7 @@ Unicode=yes
       security_setting: users
     }
   end
+
+  def self.add_unset_policies(settings)
+  end
 end

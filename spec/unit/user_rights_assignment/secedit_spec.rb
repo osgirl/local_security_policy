@@ -70,4 +70,20 @@ describe provider_class do
       expect(output).to eq(expected)
     end
   end
+  describe :add_unset_policies do
+    specify 'adds any settings from the lookup not in the input with an empty user array' do
+      allow(UserRightsAssignment::Lookup).to receive(:system_to_friendly_mapping).and_return(
+        'Right1' => 'Value1', 'Right2' => 'Value2', 'Right3' => 'Value3'
+      )
+      input_file = File.join(fixtures_path, 'unit', 'process_lines_expected.json')
+      input = JSON.parse(File.read(input_file), symbolize_names: true)
+      expected = input
+      puts expected.class
+      expected << { name: 'Right1', security_setting: [] }
+      expected << { name: 'Right2', security_setting: [] }
+      expected << { name: 'Right3', security_setting: [] }
+      output = provider_class.add_unset_policies input
+      expect(output).to eq(expected)
+    end
+  end
 end

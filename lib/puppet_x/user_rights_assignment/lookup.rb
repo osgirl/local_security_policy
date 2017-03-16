@@ -11,6 +11,14 @@ module UserRightsAssignment
       @mapping[friendly_name]
     end
 
+    def self.friendly_to_system_mapping
+      @mapping
+    end
+
+    def system_to_friendly_mapping
+      @mapping.invert
+    end
+
     @mapping = {
       'Access Credential Manager as a trusted caller' => 'SeTrustedCredManAccessPrivilege',
       'Access this computer from the network' => 'SeNetworkLogonRight',
