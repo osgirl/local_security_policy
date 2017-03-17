@@ -8,7 +8,7 @@ Puppet::Type.newtype(:user_rights_assignment) do
 
   newproperty(:security_setting, array_matching: :all) do
     def insync?(is)
-      is.sort == should.sort
+      is.map(&:downcase).sort == should.map(&:downcase).sort
     end
   end
 end

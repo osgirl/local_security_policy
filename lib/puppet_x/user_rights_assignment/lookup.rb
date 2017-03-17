@@ -15,7 +15,7 @@ module UserRightsAssignment
       @mapping
     end
 
-    def system_to_friendly_mapping
+    def self.system_to_friendly_mapping
       @mapping.invert
     end
 

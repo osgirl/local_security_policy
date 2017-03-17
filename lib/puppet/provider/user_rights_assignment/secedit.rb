@@ -15,8 +15,12 @@ Puppet::Type.type(:user_rights_assignment).provide(:secedit, parent: Puppet::Pro
   def self.instances
     inf = read_policy_settings
     settings = process_lines inf
-    settings.each.collect do |setting|
-      new(system_to_friendly(setting))
+    currentsettings = settings.each.collect do |setting|
+      system_to_friendly(setting)
+    end
+    allsettings = add_unset_policies(currentsettings)
+    allsettings.each.collect do |setting|
+      new(setting)
     end
   end
 
@@ -47,8 +51,8 @@ Unicode=yes
   end
 
   def users_to_sids(users)
-    users = self.class.replace_incorrect_users users
-    sids = users.each.collect do |user|
+    correct_users = self.class.replace_incorrect_users users
+    sids = correct_users.each.collect do |user|
       "*#{Puppet::Util::Windows::SID.name_to_sid user}"
     end
     sids.join(',')
@@ -57,9 +61,7 @@ Unicode=yes
   # fix for Win10/Server2016
   def self.replace_incorrect_users(users)
     index = users.index('BUILTIN\\System Managed Group')
-    if index
-      users[index] = 'BUILTIN\\System Managed Accounts Group'
-    end
+    users[index] = 'BUILTIN\\System Managed Accounts Group' if index
     users
   end
 
@@ -100,5 +102,13 @@ Unicode=yes
   end
 
   def self.add_unset_policies(settings)
+    output = settings
+    set_settings = settings.map { |x| x[:name] }
+    UserRightsAssignment::Lookup.friendly_to_system_mapping.keys.each do |privilege|
+      unless set_settings.include?(privilege)
+        output << { name: privilege, security_setting: [] }
+      end
+    end
+    output
   end
 end
