@@ -18,7 +18,13 @@ user_rights_assignment { 'Lock pages in memory':
 event_audit { 'Audit logon events':
   security_setting => 'failure',
 }
+event_audit { 'Audit system events':
+  security_setting => 'no_auditing',
+}
 
 system_access { 'Account lockout duration':
   security_setting => '30',
+}
+system_access { 'Accounts: Rename administrator account':
+  security_setting => 'l_admin',
 }
