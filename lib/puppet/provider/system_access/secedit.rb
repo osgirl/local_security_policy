@@ -38,12 +38,20 @@ Unicode=yes
 [System Access]
     TEXT
     setting_name = SystemAccess::Lookup.system_name @resource[:policy]
-    setting_value = @resource[:security_setting]
+    setting_value = quote_strings(setting_name, @resource[:security_setting])
     setting_line = "#{setting_name} = #{setting_value}"
     text += setting_line
     out_file = File.new('C:\\Windows\\Temp\\write.ini', 'w')
     out_file.puts(text)
     out_file.close
+  end
+
+  def self.quote_strings(setting_name, setting_value)
+    if setting_name == 'NewAdministratorName' || setting_name == 'NewGuestName'
+      "\"#{setting_value}\""
+    else
+      setting_value
+    end
   end
 
   def self.convert_line(line)
