@@ -46,7 +46,7 @@ Unicode=yes
     out_file.close
   end
 
-  def self.quote_strings(setting_name, setting_value)
+  def quote_strings(setting_name, setting_value)
     if setting_name == 'NewAdministratorName' || setting_name == 'NewGuestName'
       "\"#{setting_value}\""
     else
