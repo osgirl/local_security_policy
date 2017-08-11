@@ -22,7 +22,12 @@ Puppet::Type.type(:system_access).provide(:secedit, parent: Puppet::Provider::Se
 
   def security_setting=(value)
     write_file
-    secedit(['/configure', '/db', 'C:\\Windows\\Temp\\db.sdb', '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet'])
+    file_name = DateTime.now.strftime('%Y%m%dT%H%M.log')
+    secedit([
+      '/configure', '/db', 'C:\\Windows\\Temp\\db.sdb',
+      '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet',
+      '/log', "C:\\Windows\\security\\logs\\#{file_name}"
+    ])
     FileUtils.rm_f 'C:\\Windows\\Temp\\write.ini'
     FileUtils.rm_f 'C:\\Windows\\Temp\\db.sdb'
     FileUtils.rm_f 'C:\\Windows\\Temp\\db.jfm'
