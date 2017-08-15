@@ -25,7 +25,7 @@ Puppet::Type.type(:event_audit).provide(:secedit, parent: Puppet::Provider::Sece
     file_name = DateTime.now.strftime('%Y%m%dT%H%M.log')
     secedit([
       '/configure', '/db', 'C:\\Windows\\Temp\\db.sdb',
-      '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet',
+      '/cfg', 'C:\\Windows\\Temp\\write.ini',
       '/log', "C:\\Windows\\security\\logs\\#{file_name}"
     ])
     FileUtils.rm_f 'C:\\Windows\\Temp\\write.ini'

@@ -29,7 +29,7 @@ Puppet::Type.type(:user_rights_assignment).provide(:secedit, parent: Puppet::Pro
     file_name = DateTime.now.strftime('%Y%m%dT%H%M.log')
     secedit([
       '/configure', '/db', 'C:\\Windows\\Temp\\db.sdb',
-      '/cfg', 'C:\\Windows\\Temp\\write.ini', '/quiet',
+      '/cfg', 'C:\\Windows\\Temp\\write.ini',
       '/log', "C:\\Windows\\security\\logs\\#{file_name}"
     ])
     FileUtils.rm_f 'C:\\Windows\\Temp\\write.ini'
