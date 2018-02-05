@@ -95,7 +95,8 @@ Unicode=yes
   def self.system_to_friendly(setting)
     users = setting[:security_setting].each.collect do |sid|
       if Puppet::Util::Windows::SID.valid_sid? sid
-        Puppet::Util::Windows::SID.sid_to_name sid
+        result = Puppet::Util::Windows::SID.sid_to_name sid
+        result ? result : sid
       else
         sid
       end
